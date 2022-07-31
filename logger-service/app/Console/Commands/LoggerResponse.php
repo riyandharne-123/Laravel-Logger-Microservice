@@ -31,23 +31,22 @@ class LoggerResponse extends Command
      */
     public function handle()
     {
-        Redis::subscribe(['logger-response'], function($data) {
+        Redis::subscribe(['public-api-logger'], function($data) {
             $data = json_decode($data);
 
-            $log = PublicApi::where('log_id', '=', $data->log_id)->first();
+            $start = date_create($data->request_started_at);
+            $end = date_create($data->request_ended_at);
+            $duration = date_diff($start, $end);
 
-            if(isset($log)) {
-                $start = date_create($log->started_at);
-                $end = date_create($log->ended_at);
-                $duration = date_diff($start, $end);
+            $log = PublicApi::create([
+                'log_id' => $data->log_id,
+                'response' => $data->response,
+                'duration' => $duration->format('%s Seconds %i Minutes'),
+                'started_at' => $data->request_started_at,
+                'ended_at' => $data->request_ended_at
+            ]);
 
-                $log->response = $data->response;
-                $log->ended_at = $data->ended_at;
-                $log->duration = $duration->format('%s Seconds %i Minutes');
-                $log->save();
-            }
-
-            echo 'logger-response: ' . $data->log_id . PHP_EOL;
+            echo 'logger-response: ' . $log->log_id . PHP_EOL;
         });
     }
 }

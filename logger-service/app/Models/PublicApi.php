@@ -15,6 +15,6 @@ class PublicApi extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'log_id', 'request', 'response', 'duration', 'started_at', 'ended_at'
+        'log_id', 'response', 'duration', 'started_at', 'ended_at'
     ];
 }

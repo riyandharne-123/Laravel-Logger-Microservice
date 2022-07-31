@@ -21,16 +21,9 @@ class LoggerMiddleware
         $log_id = Uuid::uuid4();
 
         $request->merge([
-            'log_id' => $log_id
-        ]);
-
-        $data = [
             'log_id' => $log_id,
-            'request' => $request->all(),
-            'started_at' => now()
-        ];
-
-        Redis::publish('logger-request', json_encode($data));
+            'request_started_at' => now()
+        ]);
 
         return $next($request);
     }
@@ -47,9 +40,10 @@ class LoggerMiddleware
         $data = [
             'log_id' => $request->log_id,
             'response' => $response,
-            'ended_at' => now()
+            'request_started_at' => $request->request_started_at,
+            'request_ended_at' => now()
         ];
 
-        Redis::publish('logger-response', json_encode($data));
+        Redis::publish('public-api-logger', json_encode($data));
     }
 }

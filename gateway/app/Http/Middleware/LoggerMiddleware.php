@@ -3,7 +3,6 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Ramsey\Uuid\Uuid;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redis;
 
@@ -18,10 +17,8 @@ class LoggerMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        $log_id = Uuid::uuid4();
-
         $request->merge([
-            'log_id' => $log_id,
+            'request_endpoint' => $request->getUri(),
             'request_started_at' => now()
         ]);
 
@@ -38,8 +35,10 @@ class LoggerMiddleware
     public function terminate($request, $response)
     {
         $data = [
-            'log_id' => $request->log_id,
+            'request' => $request->all(),
+            'endpoint' => $request->request_endpoint,
             'response' => $response,
+            'exception' => $response->exception,
             'request_started_at' => $request->request_started_at,
             'request_ended_at' => now()
         ];

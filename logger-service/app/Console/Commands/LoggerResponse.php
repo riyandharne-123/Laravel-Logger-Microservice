@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Ramsey\Uuid\Uuid;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Redis;
 
@@ -37,11 +38,15 @@ class LoggerResponse extends Command
             $start = date_create($data->request_started_at);
             $end = date_create($data->request_ended_at);
             $duration = date_diff($start, $end);
+            $log_id = Uuid::uuid4();
 
             $log = PublicApi::create([
-                'log_id' => $data->log_id,
+                'log_id' => $log_id->toString(),
+                'endpoint' => $data->endpoint,
+                'exception' => !empty($data->response->exception) ? true : false,
+                'request' => $data->request,
                 'response' => $data->response,
-                'duration' => $duration->format('%s Seconds %i Minutes'),
+                'duration' => $duration->format('%i Minutes %s Seconds %f Milliseconds'),
                 'started_at' => $data->request_started_at,
                 'ended_at' => $data->request_ended_at
             ]);
